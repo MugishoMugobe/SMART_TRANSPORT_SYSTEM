@@ -1,45 +1,247 @@
+from io import BytesIO
+
+import qrcode
+
+from django.core.files import File
 from django.db import models
+
 from passengers.models import Passenger
 from trips.models import Trip
 
+
+
 class Booking(models.Model):
 
-    PAYMENT_METHODS = [
-        ('Cash', 'Cash'),
-        ('Mobile Money', 'Mobile Money'),
-        ('Card', 'Card'),
+    STATUS_CHOICES = [
+
+        ("CONFIRMED", "Confirmed"),
+
+        ("CANCELLED", "Cancelled"),
+
     ]
 
-    passenger = models.ForeignKey(
-        Passenger,
-        on_delete=models.CASCADE
+
+    booking_reference = models.CharField(
+
+        max_length=20,
+
+        unique=True,
+
+        editable=False
+
     )
 
-    trip = models.ForeignKey(
-        Trip,
-        on_delete=models.CASCADE
+
+    passenger = models.ForeignKey(
+
+        Passenger,
+
+        on_delete=models.CASCADE,
+
+        related_name="bookings"
+
     )
+
+
+    trip = models.ForeignKey(
+
+        Trip,
+
+        on_delete=models.CASCADE,
+
+        related_name="bookings"
+
+    )
+
+
+    # Selected seat from interactive seat map
 
     seat_number = models.PositiveIntegerField()
 
-    booking_date = models.DateTimeField(
-        auto_now_add=True
-    )
+
 
     amount = models.DecimalField(
+
         max_digits=10,
+
         decimal_places=2
+
     )
 
-    payment_method = models.CharField(
+
+    booking_date = models.DateTimeField(
+
+        auto_now_add=True
+
+    )
+
+
+    payment_status = models.BooleanField(
+
+        default=True
+
+    )
+
+
+    status = models.CharField(
+
         max_length=20,
-        choices=PAYMENT_METHODS
+
+        choices=STATUS_CHOICES,
+
+        default="CONFIRMED"
+
     )
 
-    is_paid = models.BooleanField(default=False)
+
+    qr_code = models.ImageField(
+
+        upload_to="qrcodes/",
+
+        blank=True,
+
+        null=True
+
+    )
+
 
     class Meta:
-        ordering = ['-booking_date']
+
+        ordering = [
+
+            "-booking_date"
+
+        ]
+
 
     def __str__(self):
-        return f"{self.passenger} - Seat {self.seat_number}"
+
+        return self.booking_reference
+
+
+
+    # -----------------------------------------
+    # Generate QR Code
+    # -----------------------------------------
+
+    def generate_qr_code(self):
+
+
+        qr = qrcode.QRCode(
+
+            version=1,
+
+            box_size=10,
+
+            border=4
+
+        )
+
+
+        qr_data = f"""
+
+Smart Public Transport System
+
+Booking Reference:
+{self.booking_reference}
+
+Passenger:
+{self.passenger.full_name}
+
+Trip:
+{self.trip.trip_number}
+
+Route:
+{self.trip.route.origin}
+to
+{self.trip.route.destination}
+
+Seat:
+{self.seat_number}
+
+Amount:
+{self.amount}
+
+Status:
+{self.status}
+
+"""
+
+
+        qr.add_data(qr_data)
+
+
+        qr.make(
+            fit=True
+        )
+
+
+        image = qr.make_image(
+
+            fill_color="black",
+
+            back_color="white"
+
+        )
+
+
+        buffer = BytesIO()
+
+
+        image.save(
+
+            buffer,
+
+            format="PNG"
+
+        )
+
+
+        filename = (
+
+            f"{self.booking_reference}.png"
+
+        )
+
+
+        self.qr_code.save(
+
+            filename,
+
+            File(buffer),
+
+            save=False
+
+        )
+
+
+
+    # -----------------------------------------
+    # Save Booking
+    # -----------------------------------------
+
+    def save(self, *args, **kwargs):
+
+
+        creating = self.pk is None
+
+
+        super().save(*args, **kwargs)
+
+
+
+        if creating and not self.qr_code:
+
+
+            self.generate_qr_code()
+
+
+            super().save(
+
+                update_fields=[
+
+                    "qr_code"
+
+                ]
+
+            )

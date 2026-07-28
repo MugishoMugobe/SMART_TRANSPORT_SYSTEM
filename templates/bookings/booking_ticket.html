@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+
+.ticket{
+    max-width:900px;
+    margin:auto;
+    border:3px solid #0d6efd;
+    border-radius:15px;
+    overflow:hidden;
+}
+
+.ticket-header{
+    background:#0d6efd;
+    color:white;
+    padding:20px;
+}
+
+.ticket-body{
+    padding:30px;
+}
+
+.ticket-footer{
+    background:#f8f9fa;
+    padding:20px;
+    text-align:center;
+}
+
+@media print{
+
+.btn{
+display:none;
+}
+
+body{
+background:white;
+}
+
+}
+
+</style>
+
+
+<div class="ticket">
+
+<div class="ticket-header">
+
+<h2 class="text-center">
+
+SMART PUBLIC TRANSPORT
+
+</h2>
+
+<h5 class="text-center">
+
+Electronic Bus Ticket
+
+</h5>
+
+</div>
+
+
+<div class="ticket-body">
+
+<div class="row">
+
+<div class="col-md-6">
+
+<p><strong>Booking Ref:</strong> {{ booking.booking_reference }}</p>
+
+<p><strong>Passenger:</strong> {{ booking.passenger.full_name }}</p>
+
+<p><strong>Trip:</strong> {{ booking.trip.trip_number }}</p>
+
+<p><strong>Seat:</strong> {{ booking.seat_number }}</p>
+
+<p><strong>Status:</strong> {{ booking.status }}</p>
+
+</div>
+
+
+<div class="col-md-6">
+
+<p><strong>Vehicle:</strong> {{ booking.trip.vehicle.vehicle_number }}</p>
+
+<p><strong>Driver:</strong> {{ booking.trip.driver.full_name }}</p>
+
+<p><strong>Departure:</strong> {{ booking.trip.departure_time }}</p>
+
+<p><strong>Arrival:</strong> {{ booking.trip.arrival_time }}</p>
+
+<p><strong>Fare:</strong> UGX {{ booking.amount }}</p>
+
+</div>
+
+</div>
+
+
+<hr>
+
+<h5>
+
+Route
+
+</h5>
+
+<h4>
+
+{{ booking.trip.route.origin }}
+
+→
+
+{{ booking.trip.route.destination }}
+
+</h4>
+
+<hr>
+
+<div class="text-center">
+
+<img
+src="{{ booking.qr_code.url }}"
+width="180"
+height="180"
+alt="QR Code">
+
+</div>
+
+</div>
+
+
+<div class="ticket-footer">
+
+<p>
+
+Thank you for travelling with us.
+
+</p>
+
+<p>
+
+Please arrive 30 minutes before departure.
+
+</p>
+
+<button
+onclick="window.print()"
+class="btn btn-primary">
+
+Print Ticket
+
+</button>
+
+<a href="{% url 'bookings:list' %}"
+class="btn btn-secondary">
+
+Back
+
+</a>
+
+</div>
+
+</div>
+
+{% endblock %}

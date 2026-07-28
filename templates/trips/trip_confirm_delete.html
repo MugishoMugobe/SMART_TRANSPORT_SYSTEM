@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+
+<div class="card-body">
+
+<h3>
+
+Delete Trip
+
+</h3>
+
+<p>
+
+Are you sure you want to delete
+
+<strong>
+
+{{ trip.trip_number }}
+
+</strong>?
+
+</p>
+
+<form method="post">
+
+{% csrf_token %}
+
+<button class="btn btn-danger">
+
+Delete
+
+</button>
+
+<a href="{% url 'trips:list' %}"
+
+class="btn btn-secondary">
+
+Cancel
+
+</a>
+
+</form>
+
+</div>
+
+</div>
+
+{% endblock %}

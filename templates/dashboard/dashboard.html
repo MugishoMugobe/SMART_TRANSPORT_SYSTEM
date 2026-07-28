@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Transport Dashboard
+</h2>
+
+
+<!-- Statistics Cards -->
+
+<div class="row">
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card text-white bg-primary">
+
+            <div class="card-body">
+
+                <h5>
+                    Passengers
+                </h5>
+
+                <h2>
+                    {{ total_passengers }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card text-white bg-success">
+
+            <div class="card-body">
+
+                <h5>
+                    Drivers
+                </h5>
+
+                <h2>
+                    {{ total_drivers }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card text-white bg-warning">
+
+            <div class="card-body">
+
+                <h5>
+                    Vehicles
+                </h5>
+
+                <h2>
+                    {{ total_vehicles }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card text-white bg-danger">
+
+            <div class="card-body">
+
+                <h5>
+                    Routes
+                </h5>
+
+                <h2>
+                    {{ total_routes }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- Second Row -->
+
+
+<div class="row">
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card border-primary">
+
+            <div class="card-body">
+
+                <h5>
+                    Trips
+                </h5>
+
+                <h3>
+                    {{ total_trips }}
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card border-success">
+
+            <div class="card-body">
+
+                <h5>
+                    Bookings
+                </h5>
+
+                <h3>
+                    {{ total_bookings }}
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card border-warning">
+
+            <div class="card-body">
+
+                <h5>
+                    Revenue
+                </h5>
+
+                <h3>
+                    {{ total_revenue }}
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card border-danger">
+
+            <div class="card-body">
+
+                <h5>
+                    Available Seats
+                </h5>
+
+                <h3>
+                    {{ available_seats }}
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<hr>
+
+
+
+<div class="row">
+
+
+<!-- Recent Bookings -->
+
+<div class="col-md-6">
+
+
+<div class="card">
+
+
+<div class="card-header">
+
+Recent Bookings
+
+</div>
+
+
+
+<div class="card-body">
+
+
+<table class="table table-striped">
+
+
+<thead>
+
+<tr>
+
+<th>
+Reference
+</th>
+
+<th>
+Passenger
+</th>
+
+<th>
+Trip
+</th>
+
+
+</tr>
+
+</thead>
+
+
+
+<tbody>
+
+
+{% for booking in recent_bookings %}
+
+
+<tr>
+
+<td>
+
+{{ booking.booking_reference }}
+
+</td>
+
+
+<td>
+
+{{ booking.passenger.full_name }}
+
+</td>
+
+
+<td>
+
+{{ booking.trip.trip_number }}
+
+</td>
+
+
+</tr>
+
+
+{% empty %}
+
+
+<tr>
+
+<td colspan="3">
+
+No bookings found
+
+</td>
+
+</tr>
+
+
+{% endfor %}
+
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- Upcoming Trips -->
+
+<div class="col-md-6">
+
+
+<div class="card">
+
+
+<div class="card-header">
+
+Upcoming Trips
+
+</div>
+
+
+
+<div class="card-body">
+
+
+<table class="table table-striped">
+
+
+<thead>
+
+<tr>
+
+<th>
+Trip
+</th>
+
+<th>
+Route
+</th>
+
+<th>
+Departure
+</th>
+
+</tr>
+
+
+</thead>
+
+
+
+<tbody>
+
+
+{% for trip in upcoming_trips %}
+
+
+<tr>
+
+
+<td>
+
+{{ trip.trip_number }}
+
+</td>
+
+
+<td>
+
+{{ trip.route.origin }}
+
+-
+
+{{ trip.route.destination }}
+
+</td>
+
+
+<td>
+
+{{ trip.departure_time }}
+
+</td>
+
+
+</tr>
+
+
+
+{% empty %}
+
+
+<tr>
+
+<td colspan="3">
+
+No upcoming trips
+
+</td>
+
+</tr>
+
+
+{% endfor %}
+
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+{% endblock %}

@@ -1,26 +1,21 @@
 from django.contrib import admin
 from .models import Passenger
 
+
 @admin.register(Passenger)
 class PassengerAdmin(admin.ModelAdmin):
+
     list_display = (
-        'full_name',
-        'email',
-        'phone',
-        'national_id',
-        'created_at'
+        "id",
+        "full_name",
+        "email",
+        "phone",
     )
 
     search_fields = (
-        'full_name',
-        'email',
-        'phone'
+        "full_name",
+        "email",
+        "phone",
     )
 
-    list_filter = (
-        'created_at',
-    )
-
-    ordering = (
-        'full_name',
-    )
+    list_per_page = 20

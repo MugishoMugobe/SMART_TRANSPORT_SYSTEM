@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Passengers</h2>
+
+<a href="{% url 'passengers:create' %}"
+class="btn btn-success mb-3">
+
+Add Passenger
+
+</a>
+
+<form method="get">
+
+<input
+type="text"
+name="q"
+value="{{ query }}"
+placeholder="Search passenger"
+class="form-control mb-3">
+
+</form>
+
+<table class="table table-bordered">
+
+<tr>
+
+<th>Name</th>
+
+<th>Email</th>
+
+<th>Phone</th>
+
+<th>Actions</th>
+
+</tr>
+
+{% for passenger in passengers %}
+
+<tr>
+
+<td>{{ passenger.full_name }}</td>
+
+<td>{{ passenger.email }}</td>
+
+<td>{{ passenger.phone }}</td>
+
+<td>
+
+<a href="{% url 'passengers:update' passenger.id %}"
+class="btn btn-warning btn-sm">
+
+Edit
+
+</a>
+
+<a href="{% url 'passengers:delete' passenger.id %}"
+class="btn btn-danger btn-sm">
+
+Delete
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="4">
+
+No passengers found.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<nav>
+
+<ul class="pagination">
+
+{% if passengers.has_previous %}
+
+<li class="page-item">
+
+<a class="page-link"
+href="?page={{ passengers.previous_page_number }}">
+
+Previous
+
+</a>
+
+</li>
+
+{% endif %}
+
+<li class="page-item active">
+
+<span class="page-link">
+
+{{ passengers.number }}
+
+</span>
+
+</li>
+
+{% if passengers.has_next %}
+
+<li class="page-item">
+
+<a class="page-link"
+href="?page={{ passengers.next_page_number }}">
+
+Next
+
+</a>
+
+</li>
+
+{% endif %}
+
+</ul>
+
+</nav>
+
+{% endblock %}

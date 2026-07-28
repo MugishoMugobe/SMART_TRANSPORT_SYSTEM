@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+    <h2>Booking Management</h2>
+
+    <a href="{% url 'bookings:create' %}"
+       class="btn btn-success">
+
+        New Booking
+
+    </a>
+
+</div>
+
+<form method="GET" class="mb-3">
+
+    <div class="row">
+
+        <div class="col-md-8">
+
+            <input
+                type="text"
+                class="form-control"
+                name="q"
+                placeholder="Search booking..."
+                value="{{ query|default:'' }}"
+            >
+
+        </div>
+
+        <div class="col-md-2">
+
+            <button class="btn btn-primary w-100">
+
+                Search
+
+            </button>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <a href="{% url 'bookings:list' %}"
+               class="btn btn-secondary w-100">
+
+                Reset
+
+            </a>
+
+        </div>
+
+    </div>
+
+</form>
+
+<div class="table-responsive">
+
+<table class="table table-bordered table-striped">
+
+<thead class="table-dark">
+
+<tr>
+
+<th>Reference</th>
+
+<th>Passenger</th>
+
+<th>Trip</th>
+
+<th>Seat</th>
+
+<th>Amount</th>
+
+<th>Payment</th>
+
+<th>Status</th>
+
+<th>Date</th>
+
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for booking in bookings %}
+
+<tr>
+
+<td>
+
+{{ booking.booking_reference }}
+
+</td>
+
+<td>
+
+{{ booking.passenger.full_name }}
+
+</td>
+
+<td>
+
+{{ booking.trip.trip_number }}
+
+</td>
+
+<td>
+
+{{ booking.seat_number }}
+
+</td>
+
+<td>
+
+{{ booking.amount }}
+
+</td>
+
+<td>
+
+{% if booking.payment_status %}
+
+<span class="badge bg-success">
+
+Paid
+
+</span>
+
+{% else %}
+
+<span class="badge bg-warning">
+
+Pending
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if booking.status == "CONFIRMED" %}
+
+<span class="badge bg-success">
+
+Confirmed
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+
+Cancelled
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{{ booking.booking_date }}
+
+</td>
+
+<td>
+
+<a href="{% url 'bookings:ticket' booking.id %}"
+class="btn btn-primary btn-sm">
+
+Ticket
+
+</a>
+
+<a href="{% url 'bookings:update' booking.id %}"
+class="btn btn-warning btn-sm">
+
+Edit
+
+</a>
+
+<a href="{% url 'bookings:delete' booking.id %}"
+class="btn btn-danger btn-sm">
+
+Delete
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="9" class="text-center">
+
+No bookings found.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% if bookings.has_other_pages %}
+
+<nav>
+
+<ul class="pagination justify-content-center">
+
+{% if bookings.has_previous %}
+
+<li class="page-item">
+
+<a class="page-link"
+
+href="?page={{ bookings.previous_page_number }}&q={{ query }}">
+
+Previous
+
+</a>
+
+</li>
+
+{% endif %}
+
+{% for page in bookings.paginator.page_range %}
+
+{% if bookings.number == page %}
+
+<li class="page-item active">
+
+<span class="page-link">
+
+{{ page }}
+
+</span>
+
+</li>
+
+{% else %}
+
+<li class="page-item">
+
+<a class="page-link"
+
+href="?page={{ page }}&q={{ query }}">
+
+{{ page }}
+
+</a>
+
+</li>
+
+{% endif %}
+
+{% endfor %}
+
+{% if bookings.has_next %}
+
+<li class="page-item">
+
+<a class="page-link"
+
+href="?page={{ bookings.next_page_number }}&q={{ query }}">
+
+Next
+
+</a>
+
+</li>
+
+{% endif %}
+
+</ul>
+
+</nav>
+
+{% endif %}
+
+{% endblock %}

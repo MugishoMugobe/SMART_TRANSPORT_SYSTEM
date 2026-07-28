@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Vehicles</h2>
+
+<a href="{% url 'vehicles:create' %}"
+   class="btn btn-success mb-3">
+
+    Add Vehicle
+
+</a>
+
+<form method="get">
+
+<input
+type="text"
+name="q"
+value="{{ query }}"
+placeholder="Search vehicle number"
+class="form-control mb-3">
+
+</form>
+
+<table class="table table-bordered table-hover">
+
+<thead>
+
+<tr>
+
+<th>Image</th>
+<th>Number</th>
+<th>Type</th>
+<th>Capacity</th>
+<th>Manufacturer</th>
+<th>Model</th>
+<th>Year</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for vehicle in vehicles %}
+
+<tr>
+
+<td>
+
+{% if vehicle.image %}
+
+<img src="{{ vehicle.image.url }}"
+     width="80"
+     class="rounded">
+
+{% else %}
+
+No Image
+
+{% endif %}
+
+</td>
+
+<td>{{ vehicle.vehicle_number }}</td>
+<td>{{ vehicle.vehicle_type }}</td>
+<td>{{ vehicle.seating_capacity }}</td>
+<td>{{ vehicle.manufacturer }}</td>
+<td>{{ vehicle.model }}</td>
+<td>{{ vehicle.year }}</td>
+
+<td>
+
+<a href="{% url 'vehicles:update' vehicle.id %}"
+class="btn btn-warning btn-sm">
+
+Edit
+
+</a>
+
+<a href="{% url 'vehicles:delete' vehicle.id %}"
+class="btn btn-danger btn-sm">
+
+Delete
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="8">
+
+No vehicles found.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% endblock %}

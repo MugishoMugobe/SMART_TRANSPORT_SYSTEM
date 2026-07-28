@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+
+<div class="d-flex justify-content-between mb-3">
+
+
+<h2>
+Booking Report
+</h2>
+
+
+<a href="{% url 'reports:export_bookings' %}"
+
+class="btn btn-success">
+
+Export CSV
+
+</a>
+
+
+</div>
+
+
+
+<div class="table-responsive">
+
+
+<table class="table table-bordered table-striped">
+
+
+<thead class="table-dark">
+
+
+<tr>
+
+<th>
+Reference
+</th>
+
+<th>
+Passenger
+</th>
+
+<th>
+Trip
+</th>
+
+<th>
+Seat
+</th>
+
+<th>
+Amount
+</th>
+
+<th>
+Status
+</th>
+
+<th>
+Date
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+<tbody>
+
+
+{% for booking in bookings %}
+
+
+<tr>
+
+
+<td>
+
+{{ booking.booking_reference }}
+
+</td>
+
+
+<td>
+
+{{ booking.passenger.full_name }}
+
+</td>
+
+
+<td>
+
+{{ booking.trip.trip_number }}
+
+</td>
+
+
+<td>
+
+{{ booking.seat_number }}
+
+</td>
+
+
+<td>
+
+{{ booking.amount }}
+
+</td>
+
+
+<td>
+
+
+{{ booking.status }}
+
+
+</td>
+
+
+<td>
+
+{{ booking.booking_date }}
+
+</td>
+
+
+</tr>
+
+
+
+{% empty %}
+
+
+<tr>
+
+<td colspan="7" class="text-center">
+
+No bookings available
+
+</td>
+
+</tr>
+
+
+{% endfor %}
+
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+
+{% endblock %}

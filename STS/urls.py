@@ -15,12 +15,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
+    path("accounts/", include("accounts.urls")),
+    path("passengers/", include("passengers.urls")),
+    path("drivers/", include("drivers.urls")),
+    path("vehicles/", include("vehicles.urls")),
+    path("routes/", include("routes.urls")),
+    path("trips/", include("trips.urls")),
+    path("bookings/", include("bookings.urls")),
+    path("dashboard/", include("dashboard.urls")),
+    path("", RedirectView.as_view(url="/dashboard/")),
+    path("reports/", include("reports.urls")),
+
 ]
 
 if settings.DEBUG:
@@ -30,3 +42,9 @@ if settings.DEBUG:
 admin.site.site_header = "Smart Public Transport Management"
 admin.site.site_title = "Transport Admin"
 admin.site.index_title = "Administration Dashboard"
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )

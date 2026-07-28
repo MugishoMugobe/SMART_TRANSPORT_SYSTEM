@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Driver</h2>
+
+<a href="{% url 'drivers:create' %}"
+class="btn btn-success mb-3">
+
+Add Driver
+
+</a>
+
+<form method="get">
+
+<input
+type="text"
+name="q"
+value="{{ query }}"
+placeholder="Search driver"
+class="form-control mb-3">
+
+</form>
+
+<table class="table table-bordered">
+
+<tr>
+
+<th>Name</th>
+
+<th>Email</th>
+
+<th>Phone</th>
+
+<th>Photo</th>
+
+<th>Actions</th>
+
+</tr>
+
+{% for driver in drivers %}
+
+<tr>
+
+<td>{{ driver.full_name }}</td>
+
+<td>{{ driver.email }}</td>
+
+<td>{{ driver.phone }}</td>
+
+<td>
+    {% if driver.photo %}
+        <img src="{{ driver.photo.url }}"
+             width="60"
+             height="60"
+             class="rounded">
+    {% else %}
+        No Photo
+    {% endif %}
+</td>
+
+<td>
+
+<a href="{% url 'drivers:update' driver.id %}"
+class="btn btn-warning btn-sm">
+
+Edit
+
+</a>
+
+<a href="{% url 'drivers:delete' driver.id %}"
+class="btn btn-danger btn-sm">
+
+Delete
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="4">
+
+No drivers found.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<nav>
+
+<ul class="pagination">
+
+{% if drivers.has_previous %}
+
+<li class="page-item">
+
+<a class="page-link"
+href="?page={{ drivers.previous_page_number }}">
+
+Previous
+
+</a>
+
+</li>
+
+{% endif %}
+
+<li class="page-item active">
+
+<span class="page-link">
+
+{{ drivers.number }}
+
+</span>
+
+</li>
+
+{% if drivers.has_next %}
+
+<li class="page-item">
+
+<a class="page-link"
+href="?page={{ drivers.next_page_number }}">
+
+Next
+
+</a>
+
+</li>
+
+{% endif %}
+
+</ul>
+
+</nav>
+
+{% endblock %}

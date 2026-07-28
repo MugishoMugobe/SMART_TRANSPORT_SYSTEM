@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+
+<div class="card-body">
+
+<h3>
+
+Delete Booking
+
+</h3>
+
+<p>
+
+Are you sure you want to delete
+
+<strong>
+
+{{ booking.booking_reference }}
+
+</strong>?
+
+</p>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<button class="btn btn-danger">
+
+Delete
+
+</button>
+
+<a href="{% url 'bookings:list' %}"
+
+class="btn btn-secondary">
+
+Cancel
+
+</a>
+
+</form>
+
+</div>
+
+</div>
+
+{% endblock %}

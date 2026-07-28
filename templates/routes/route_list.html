@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Route Management</h2>
+
+    <a href="{% url 'routes:create' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Add Route
+    </a>
+</div>
+
+<!-- Search Form -->
+<form method="GET" class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <input
+                type="text"
+                name="q"
+                class="form-control"
+                placeholder="Search by origin..."
+                value="{{ query|default:'' }}"
+            >
+        </div>
+
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100">
+                Search
+            </button>
+        </div>
+
+        <div class="col-md-2">
+            <a href="{% url 'routes:list' %}" class="btn btn-secondary w-100">
+                Reset
+            </a>
+        </div>
+    </div>
+</form>
+
+<div class="table-responsive">
+
+<table class="table table-bordered table-striped table-hover">
+
+    <thead class="table-dark">
+
+    <tr>
+
+        <th>#</th>
+        <th>Origin</th>
+        <th>Destination</th>
+        <th>Distance (Km)</th>
+        <th>Duration</th>
+        <th>Fare</th>
+        <th>Status</th>
+        <th width="180">Actions</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for route in routes %}
+
+    <tr>
+
+        <td>{{ forloop.counter }}</td>
+
+        <td>{{ route.origin }}</td>
+
+        <td>{{ route.destination }}</td>
+
+        <td>{{ route.distance }}</td>
+
+        <td>{{ route.estimated_duration }}</td>
+
+        <td>{{ route.fare }}</td>
+
+        <td>
+
+            {% if route.status == "ACTIVE" %}
+
+                <span class="badge bg-success">
+                    Active
+                </span>
+
+            {% else %}
+
+                <span class="badge bg-danger">
+                    Inactive
+                </span>
+
+            {% endif %}
+
+        </td>
+
+        <td>
+
+            <a href="{% url 'routes:update' route.id %}"
+               class="btn btn-warning btn-sm">
+
+                Edit
+
+            </a>
+
+            <a href="{% url 'routes:delete' route.id %}"
+               class="btn btn-danger btn-sm">
+
+                Delete
+
+            </a>
+
+        </td>
+
+    </tr>
+
+    {% empty %}
+
+    <tr>
+
+        <td colspan="8" class="text-center">
+
+            No routes found.
+
+        </td>
+
+    </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+</div>
+
+<!-- Pagination -->
+
+{% if routes.has_other_pages %}
+
+<nav>
+
+<ul class="pagination justify-content-center">
+
+    {% if routes.has_previous %}
+
+    <li class="page-item">
+
+        <a class="page-link"
+           href="?page={{ routes.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+
+            Previous
+
+        </a>
+
+    </li>
+
+    {% else %}
+
+    <li class="page-item disabled">
+
+        <span class="page-link">
+
+            Previous
+
+        </span>
+
+    </li>
+
+    {% endif %}
+
+    {% for num in routes.paginator.page_range %}
+
+        {% if routes.number == num %}
+
+        <li class="page-item active">
+
+            <span class="page-link">
+
+                {{ num }}
+
+            </span>
+
+        </li>
+
+        {% else %}
+
+        <li class="page-item">
+
+            <a class="page-link"
+               href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">
+
+                {{ num }}
+
+            </a>
+
+        </li>
+
+        {% endif %}
+
+    {% endfor %}
+
+    {% if routes.has_next %}
+
+    <li class="page-item">
+
+        <a class="page-link"
+           href="?page={{ routes.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+
+            Next
+
+        </a>
+
+    </li>
+
+    {% else %}
+
+    <li class="page-item disabled">
+
+        <span class="page-link">
+
+            Next
+
+        </span>
+
+    </li>
+
+    {% endif %}
+
+</ul>
+
+</nav>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+
+{% block content %}
+
+<div class="container mt-4">
+
+
+<h2 class="mb-4">
+    Create Booking
+</h2>
+
+
+
+<div class="card shadow">
+
+<div class="card-body">
+
+
+<form method="POST">
+
+{% csrf_token %}
+
+
+
+<!-- Passenger -->
+
+<div class="mb-3">
+
+<label class="form-label">
+Passenger
+</label>
+
+{{ form.passenger }}
+
+</div>
+
+
+
+
+<!-- Trip -->
+
+<div class="mb-3">
+
+<label class="form-label">
+Trip
+</label>
+
+
+<select 
+name="trip"
+id="trip-select"
+class="form-control">
+
+
+<option value="">
+-- Select Trip --
+</option>
+
+
+
+{% for trip in form.trip.field.queryset %}
+
+<option value="{{ trip.id }}">
+
+{{ trip.trip_number }}
+-
+{{ trip.route.origin }}
+to
+{{ trip.route.destination }}
+
+(
+{{ trip.vehicle.vehicle_number }}
+)
+
+</option>
+
+{% endfor %}
+
+
+</select>
+
+
+</div>
+
+
+
+
+<!-- Hidden Seat -->
+
+<input
+
+type="hidden"
+
+name="seat_number"
+
+id="seat_number"
+
+>
+
+
+
+
+<hr>
+
+
+
+<h4 class="text-center">
+
+Select Seat
+
+</h4>
+
+
+<div class="text-center mb-3">
+
+<span class="badge bg-success">
+Available
+</span>
+
+
+<span class="badge bg-danger">
+Booked
+</span>
+
+
+<span class="badge bg-primary">
+Selected
+</span>
+
+
+</div>
+
+
+
+
+<div
+
+id="seat-map"
+
+class="text-center"
+
+>
+
+<p class="text-muted">
+
+Please select a trip first
+
+</p>
+
+
+</div>
+
+
+
+
+<hr>
+
+
+
+<button
+
+type="submit"
+
+class="btn btn-primary"
+
+>
+
+Confirm Booking
+
+</button>
+
+
+
+<a
+
+href="{% url 'bookings:list' %}"
+
+class="btn btn-secondary"
+
+>
+
+Cancel
+
+</a>
+
+
+
+</form>
+
+
+</div>
+
+</div>
+
+
+</div>
+
+
+
+
+
+<script>
+
+
+const tripSelect =
+document.getElementById(
+"trip-select"
+);
+
+
+
+const seatMap =
+document.getElementById(
+"seat-map"
+);
+
+
+
+const seatInput =
+document.getElementById(
+"seat_number"
+);
+
+
+
+
+
+tripSelect.addEventListener(
+
+"change",
+
+function(){
+
+
+let tripId=this.value;
+
+
+
+seatMap.innerHTML="";
+
+seatInput.value="";
+
+
+
+if(!tripId){
+
+return;
+
+}
+
+
+
+
+
+fetch(
+
+`{% url 'bookings:available_seats' 0 %}`
+.replace(
+"0",
+tripId
+)
+
+)
+
+
+
+.then(
+response => response.json()
+)
+
+
+
+.then(
+
+data => {
+
+
+let totalSeats =
+data.total_seats;
+
+
+let bookedSeats =
+data.booked_seats;
+
+
+
+for(
+let i=1;
+i<=totalSeats;
+i++
+){
+
+
+
+let seat =
+document.createElement(
+"button"
+);
+
+
+
+seat.type="button";
+
+
+seat.innerHTML=i;
+
+
+
+seat.style.width="45px";
+
+seat.style.height="45px";
+
+seat.style.margin="5px";
+
+
+
+seat.classList.add(
+"btn"
+);
+
+
+
+
+if(
+bookedSeats.includes(i)
+){
+
+
+seat.classList.add(
+"btn-danger"
+);
+
+
+seat.disabled=true;
+
+
+}
+
+
+
+else{
+
+
+seat.classList.add(
+"btn-success"
+);
+
+
+
+seat.onclick=function(){
+
+
+
+document
+
+.querySelectorAll(
+"#seat-map button"
+)
+
+.forEach(
+function(btn){
+
+
+if(!btn.disabled){
+
+
+btn.classList.remove(
+"btn-primary"
+);
+
+
+btn.classList.add(
+"btn-success"
+);
+
+
+}
+
+}
+
+);
+
+
+
+
+seat.classList.remove(
+"btn-success"
+);
+
+
+seat.classList.add(
+"btn-primary"
+);
+
+
+
+seatInput.value=i;
+
+
+
+};
+
+
+
+}
+
+
+
+seatMap.appendChild(
+seat
+);
+
+
+
+}
+
+
+}
+
+);
+
+
+
+});
+
+
+</script>
+
+
+
+{% endblock %}

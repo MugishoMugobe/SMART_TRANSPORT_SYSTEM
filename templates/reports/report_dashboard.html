@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Reports Dashboard
+</h2>
+
+
+<div class="row">
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card bg-primary text-white">
+
+            <div class="card-body">
+
+                <h5>
+                    Total Bookings
+                </h5>
+
+                <h2>
+                    {{ total_bookings }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card bg-success text-white">
+
+            <div class="card-body">
+
+                <h5>
+                    Total Revenue
+                </h5>
+
+                <h2>
+                    {{ total_revenue }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card bg-warning">
+
+            <div class="card-body">
+
+                <h5>
+                    Passengers
+                </h5>
+
+                <h2>
+                    {{ total_passengers }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3 mb-3">
+
+        <div class="card bg-danger text-white">
+
+            <div class="card-body">
+
+                <h5>
+                    Trips
+                </h5>
+
+                <h2>
+                    {{ total_trips }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<hr>
+
+
+<div class="mt-4">
+
+
+<a href="{% url 'reports:bookings' %}"
+
+class="btn btn-primary">
+
+Booking Report
+
+</a>
+
+
+
+<a href="{% url 'reports:revenue' %}"
+
+class="btn btn-success">
+
+Revenue Report
+
+</a>
+
+
+
+</div>
+
+
+{% endblock %}
