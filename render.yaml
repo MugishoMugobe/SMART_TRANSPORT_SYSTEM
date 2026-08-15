@@ -1,0 +1,27 @@
+# Render "Blueprint" — lets you deploy this whole app (web service +
+# managed Postgres) in one step from the Render dashboard:
+# New → Blueprint → point it at this GitHub repo → Apply.
+# See docs/DEPLOYMENT.md for the full walkthrough.
+
+services:
+  - type: web
+    name: smart-transport-system
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn STS.wsgi:application --log-file -"
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-transport-db
+          property: connectionString
+
+databases:
+  - name: smart-transport-db
+    plan: free

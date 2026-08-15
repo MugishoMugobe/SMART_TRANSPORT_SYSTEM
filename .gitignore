@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Django
+staticfiles/
+*.log
+
+# Environment / secrets — never commit real values, see .env.example
+.env
+
+# Editor/OS cruft
+.DS_Store
+.idea/
+.vscode/
