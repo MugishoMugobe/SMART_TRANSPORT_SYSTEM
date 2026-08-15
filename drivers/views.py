@@ -1,12 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
 from .models import Driver
 from .forms import DriverForm
+from accounts.decorators import role_required
 
 
-@login_required
+# Driver records hold personal/licensing data, so the whole module —
+# including read — is staff/admin only.
+
+@role_required("STAFF", "ADMIN")
 def driver_list(request):
 
     query = request.GET.get("q")
@@ -34,7 +37,7 @@ def driver_list(request):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def driver_create(request):
 
     if request.method == "POST":
@@ -58,7 +61,7 @@ def driver_create(request):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def driver_update(request, pk):
 
     driver = get_object_or_404(
@@ -91,7 +94,7 @@ def driver_update(request, pk):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def driver_delete(request, pk):
 
     driver = get_object_or_404(

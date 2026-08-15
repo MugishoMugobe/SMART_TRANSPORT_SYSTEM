@@ -5,7 +5,11 @@ from django.core.paginator import Paginator
 
 from .models import Vehicle
 from .forms import VehicleForm
+from accounts.decorators import role_required
 
+
+# Reading the fleet list is fine for any authenticated role — only
+# managing it (create/update/delete) is staff/admin only.
 
 @login_required
 def vehicle_list(request):
@@ -19,6 +23,11 @@ def vehicle_list(request):
             vehicle_number__icontains=query
         )
 
+    vehicle_type = request.GET.get("vehicle_type")
+
+    if vehicle_type:
+        vehicles = vehicles.filter(vehicle_type=vehicle_type)
+
     paginator = Paginator(vehicles, 10)
 
     page = request.GET.get("page")
@@ -30,12 +39,14 @@ def vehicle_list(request):
         "vehicles/vehicle_list.html",
         {
             "vehicles": vehicles,
-            "query": query
+            "query": query,
+            "vehicle_type": vehicle_type,
+            "vehicle_types": Vehicle.VEHICLE_TYPES,
         }
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def vehicle_create(request):
 
     if request.method == "POST":
@@ -60,7 +71,7 @@ def vehicle_create(request):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def vehicle_update(request, pk):
 
     vehicle = get_object_or_404(
@@ -94,7 +105,7 @@ def vehicle_update(request, pk):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def vehicle_delete(request, pk):
 
     vehicle = get_object_or_404(

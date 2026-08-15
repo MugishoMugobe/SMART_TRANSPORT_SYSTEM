@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from accounts.decorators import role_required
 
 from django.db.models import Sum, Count
 
@@ -9,7 +9,7 @@ from passengers.models import Passenger
 
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def report_dashboard(request):
 
     total_bookings = Booking.objects.count()
@@ -52,7 +52,7 @@ def report_dashboard(request):
 
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def booking_report(request):
 
     bookings = Booking.objects.select_related(
@@ -80,7 +80,7 @@ def booking_report(request):
 
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def revenue_report(request):
 
     revenue = Booking.objects.filter(
@@ -110,7 +110,7 @@ def revenue_report(request):
 
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def export_bookings_csv(request):
 
     import csv

@@ -1,12 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from .models import Passenger
 from .forms import PassengerForm
 from django.contrib import messages
+from accounts.decorators import role_required
 
 
-@login_required
+# Passenger records hold personal data (national ID, address, contact
+# details), so the whole module — including read — is staff/admin only.
+
+@role_required("STAFF", "ADMIN")
 def passenger_list(request):
 
     query = request.GET.get("q")
@@ -34,7 +37,7 @@ def passenger_list(request):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def passenger_create(request):
 
     if request.method == "POST":
@@ -54,7 +57,7 @@ def passenger_create(request):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def passenger_update(request, pk):
 
     passenger = get_object_or_404(
@@ -87,7 +90,7 @@ def passenger_update(request, pk):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def passenger_delete(request, pk):
 
     passenger = get_object_or_404(
