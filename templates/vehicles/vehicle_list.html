@@ -4,21 +4,38 @@
 
 <h2>Vehicles</h2>
 
+{% if user.is_superuser or user.profile.role == "STAFF" or user.profile.role == "ADMIN" %}
 <a href="{% url 'vehicles:create' %}"
    class="btn btn-success mb-3">
 
     Add Vehicle
 
 </a>
+{% endif %}
 
-<form method="get">
+<form method="get" class="row g-2 mb-3">
 
+<div class="col-sm-8">
 <input
 type="text"
 name="q"
-value="{{ query }}"
+value="{{ query|default:'' }}"
 placeholder="Search vehicle number"
-class="form-control mb-3">
+class="form-control">
+</div>
+
+<div class="col-sm-3">
+<select name="vehicle_type" class="form-select" onchange="this.form.submit()">
+    <option value="">All types</option>
+    {% for value, label in vehicle_types %}
+    <option value="{{ value }}" {% if vehicle_type == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+</select>
+</div>
+
+<div class="col-sm-1">
+<button type="submit" class="btn btn-outline-primary w-100">Go</button>
+</div>
 
 </form>
 
@@ -72,6 +89,8 @@ No Image
 
 <td>
 
+{% if user.is_superuser or user.profile.role == "STAFF" or user.profile.role == "ADMIN" %}
+
 <a href="{% url 'vehicles:update' vehicle.id %}"
 class="btn btn-warning btn-sm">
 
@@ -85,6 +104,12 @@ class="btn btn-danger btn-sm">
 Delete
 
 </a>
+
+{% else %}
+
+&mdash;
+
+{% endif %}
 
 </td>
 
@@ -107,5 +132,51 @@ No vehicles found.
 </tbody>
 
 </table>
+
+{% if vehicles.has_other_pages %}
+
+<nav>
+
+<ul class="pagination justify-content-center">
+
+{% if vehicles.has_previous %}
+
+<li class="page-item">
+<a class="page-link" href="?page={{ vehicles.previous_page_number }}&q={{ query|default:'' }}&vehicle_type={{ vehicle_type|default:'' }}">Previous</a>
+</li>
+
+{% endif %}
+
+{% for page in vehicles.paginator.page_range %}
+
+{% if vehicles.number == page %}
+
+<li class="page-item active">
+<span class="page-link">{{ page }}</span>
+</li>
+
+{% else %}
+
+<li class="page-item">
+<a class="page-link" href="?page={{ page }}&q={{ query|default:'' }}&vehicle_type={{ vehicle_type|default:'' }}">{{ page }}</a>
+</li>
+
+{% endif %}
+
+{% endfor %}
+
+{% if vehicles.has_next %}
+
+<li class="page-item">
+<a class="page-link" href="?page={{ vehicles.next_page_number }}&q={{ query|default:'' }}&vehicle_type={{ vehicle_type|default:'' }}">Next</a>
+</li>
+
+{% endif %}
+
+</ul>
+
+</nav>
+
+{% endif %}
 
 {% endblock %}
