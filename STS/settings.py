@@ -10,22 +10,58 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
+import sys
+import tempfile
 from pathlib import Path
+
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+def env_bool(name, default):
+    return os.environ.get(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
+
+
+# --------------------------------------------------------------------
+# Environment-driven settings.
+#
+# Locally (no env vars set) this behaves exactly like the original
+# hardcoded settings: DEBUG on, SQLite, insecure dev key. In production
+# (Render, or any host that sets these env vars) it switches to a real
+# secret key, DEBUG off, the platform's Postgres database, and hardened
+# cookies/HTTPS — see docs/DEPLOYMENT.md.
+# --------------------------------------------------------------------
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-0g$p8e52gu9yp#*+!_^kbr1sdcjd=sr25cdtit6zd@ag+4w+6h'
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-0g$p8e52gu9yp#*+!_^kbr1sdcjd=sr25cdtit6zd@ag+4w+6h",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool("DJANGO_DEBUG", True)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
+    if host.strip()
+]
+
+# Render's health checks and the deployed URL both need to be trusted
+# for CSRF (Django 4+ requires the scheme, e.g. "https://app.onrender.com").
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
 
 
 # Application definition
@@ -37,6 +73,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'accounts',
     'passengers',
     'drivers',
@@ -47,10 +84,12 @@ INSTALLED_APPS = [
     'dashboard',
     'reports',
     'carousel',
+    'api',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # serves static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,12 +120,16 @@ WSGI_APPLICATION = 'STS.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+#
+# DATABASE_URL is set by Render (and Railway) when a Postgres add-on is
+# attached — e.g. postgres://user:pass@host:5432/dbname. Locally, where
+# it's unset, this falls straight back to the original SQLite file.
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+    )
 }
 
 
@@ -127,17 +170,69 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 #Configure Static Files: we create a static folder in the project root
-STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# `collectstatic` writes here; WhiteNoise serves straight out of it in
+# production so the app doesn't depend on a separate static-file host.
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 #For media
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 
+# `manage.py test` creates real Driver/Vehicle/Booking rows with real
+# uploaded images (ImageField runs the file through Pillow, so a fake
+# file won't do) — TestCase rolls back the database afterwards but does
+# NOT delete files it wrote to disk. Without this, every test run leaves
+# junk behind in the real media/ folder. Redirect uploads to a throwaway
+# OS temp directory whenever tests are running instead.
+if "test" in sys.argv or "pytest" in sys.modules:
+    MEDIA_ROOT = Path(tempfile.mkdtemp(prefix="sts_test_media_"))
+
+# --------------------------------------------------------------------
+# Production hardening — only kicks in when DJANGO_DEBUG=False is set
+# by the host, so local development is unaffected.
+# --------------------------------------------------------------------
+if not DEBUG:
+    SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 7  # 1 week; raise once confident nothing breaks
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 #Login URLS
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "accounts:login"
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Django REST Framework
+# Session auth reuses the same login every other page already uses, so a
+# staff member signed in through the browser can also browse /api/v1/
+# without a second credential system.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'EXCEPTION_HANDLER': 'api.exceptions.api_exception_handler',
+}

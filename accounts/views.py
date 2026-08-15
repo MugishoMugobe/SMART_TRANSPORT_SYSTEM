@@ -31,6 +31,7 @@ def user_login(request):
 
         username = request.POST["username"]
         password = request.POST["password"]
+        remember_me = request.POST.get("remember")
 
         user = authenticate(
             request,
@@ -40,6 +41,12 @@ def user_login(request):
 
         if user:
             login(request, user)
+
+            # Stay signed in after the browser closes only if requested.
+            if remember_me:
+                request.session.set_expiry(1209600)  # 2 weeks
+            else:
+                request.session.set_expiry(0)
 
             # Role-based redirection
             """
@@ -68,6 +75,11 @@ def user_login(request):
                 return redirect("/")
 
             return redirect("/")
+
+        return render(request, "accounts/login.html", {
+            "error": "Incorrect username or password. Please try again.",
+            "username": username,
+        })
 
     return render(request, "accounts/login.html")
 

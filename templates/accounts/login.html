@@ -1,53 +1,521 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign In · Smart Transport</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --canvas: #eef2f8;
+    --surface: #ffffff;
+    --surface-2: #f6f8fc;
+    --line: #dde4f0;
+    --ink: #0f1b2d;
+    --ink-soft: #4b5a71;
+    --ink-faint: #8493a8;
+
+    --navy-900: #0a1830;
+    --navy-700: #123166;
+    --navy-500: #1c4694;
+    --on-navy: #eaf1ff;
+    --on-navy-soft: #9cb2da;
+
+    --accent: #0d6efd;
+    --accent-strong: #0a58ca;
+    --amber: #f5a524;
+
+    --danger: #c0392b;
+    --danger-tint: #fdecea;
+    --danger-line: #f3c6c1;
+
+    --focus-ring: rgba(13, 110, 253, 0.35);
+    --shadow: 0 24px 60px -24px rgba(10, 24, 48, 0.35), 0 2px 8px rgba(10, 24, 48, 0.06);
+
+    --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --canvas: #0a1220;
+      --surface: #101b30;
+      --surface-2: #0c1626;
+      --line: #223255;
+      --ink: #e9eef8;
+      --ink-soft: #aebbd2;
+      --ink-faint: #71809b;
+
+      --navy-900: #060d1c;
+      --navy-700: #0d1f42;
+      --navy-500: #163a7c;
+      --on-navy: #eaf1ff;
+      --on-navy-soft: #93a9d1;
+
+      --accent: #4c8dff;
+      --accent-strong: #79aaff;
+
+      --danger: #ff8b7a;
+      --danger-tint: #3a1a17;
+      --danger-line: #5c2823;
+
+      --shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 920px;
+    display: grid;
+    grid-template-columns: 0.85fr 1fr;
+    background: var(--surface);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+
+  .brand-pane {
+    position: relative;
+    background:
+      radial-gradient(120% 140% at 15% 0%, var(--navy-500) 0%, transparent 55%),
+      linear-gradient(165deg, var(--navy-700) 0%, var(--navy-900) 100%);
+    color: var(--on-navy);
+    padding: 40px 34px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 560px;
+    overflow: hidden;
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.2px;
+    position: relative;
+    z-index: 2;
+    text-decoration: none;
+    color: inherit;
+  }
+  .brand-mark svg { flex: none; }
+
+  .brand-copy { position: relative; z-index: 2; margin-top: 40px; }
+  .brand-eyebrow {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 0 0 10px;
+  }
+  .brand-copy h1 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    line-height: 1.25;
+    font-weight: 800;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  .brand-copy p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--on-navy-soft);
+    margin: 0;
+    max-width: 34ch;
+  }
+
+  .route-map {
+    position: absolute;
+    inset: auto -10% -8% -6%;
+    width: 115%;
+    height: auto;
+    z-index: 1;
+    opacity: 0.9;
+  }
+
+  .brand-features {
+    position: relative;
+    z-index: 2;
+    list-style: none;
+    margin: 34px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .brand-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--on-navy);
+  }
+  .brand-features .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+    flex: none;
+    box-shadow: 0 0 0 4px rgba(245, 165, 36, 0.18);
+  }
+
+  .form-pane {
+    padding: 44px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .form-head { margin-bottom: 24px; }
+  .form-head .eyebrow {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 8px;
+  }
+  .form-head h2 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .form-head p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--ink-faint);
+  }
+
+  .alert-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--danger-tint);
+    border: 1px solid var(--danger-line);
+    color: var(--danger);
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-size: 13px;
+    line-height: 1.45;
+    margin-bottom: 20px;
+  }
+  .alert-error svg { flex: none; margin-top: 1px; }
+
+  form { display: flex; flex-direction: column; gap: 16px; }
+
+  .field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-wrap svg.leading {
+    position: absolute;
+    left: 13px;
+    color: var(--ink-faint);
+    pointer-events: none;
+  }
+  .field input {
+    width: 100%;
+    font: inherit;
+    font-size: 14.5px;
+    padding: 11px 13px 11px 38px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .field input::placeholder { color: var(--ink-faint); }
+  .field input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+    box-shadow: 0 0 0 4px var(--focus-ring);
+  }
+  .field.has-error input { border-color: var(--danger); }
+  .field.has-error input:focus { box-shadow: 0 0 0 4px rgba(192, 57, 43, 0.18); }
+
+  .toggle-visibility {
+    position: absolute;
+    right: 6px;
+    background: none;
+    border: none;
+    color: var(--ink-faint);
+    padding: 7px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+  }
+  .toggle-visibility:hover { color: var(--ink-soft); background: var(--line); }
+  .toggle-visibility:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .row-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-top: 2px;
+    gap: 12px;
+  }
+  .remember {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    user-select: none;
+  }
+  .remember input {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .row-between .hint {
+    color: var(--ink-faint);
+    font-size: 12px;
+    text-align: right;
+  }
+
+  .btn-submit {
+    margin-top: 6px;
+    width: 100%;
+    font: inherit;
+    font-weight: 600;
+    font-size: 14.5px;
+    color: #fff;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 10px 20px -10px rgba(13, 110, 253, 0.55);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  }
+  .btn-submit:hover { filter: brightness(1.04); box-shadow: 0 14px 24px -10px rgba(13, 110, 253, 0.6); }
+  .btn-submit:active { transform: translateY(1px); }
+  .btn-submit:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0 16px;
+    color: var(--ink-faint);
+    font-size: 12px;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    height: 1px;
+    background: var(--line);
+    flex: 1;
+  }
+
+  .signup-cta {
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .signup-cta a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .signup-cta a:hover { text-decoration: underline; }
+
+  .back-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    text-decoration: none;
+    margin-top: 26px;
+  }
+  .back-home:hover { color: var(--ink-soft); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  @media (max-width: 760px) {
+    .auth-card { grid-template-columns: 1fr; max-width: 440px; }
+    .brand-pane { min-height: 0; padding: 30px 28px 26px; }
+    .brand-copy { margin-top: 22px; }
+    .brand-copy p { max-width: none; }
+    .route-map { display: none; }
+    .brand-features { flex-direction: row; flex-wrap: wrap; gap: 10px 18px; margin-top: 20px; }
+    .form-pane { padding: 34px 28px 38px; }
+  }
+</style>
 
 </head>
-
 <body>
 
-<div class="container mt-5">
+<div class="auth-card">
 
-<h2>Login</h2>
+  <aside class="brand-pane">
+    <a class="brand-mark" href="/">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="2.5" y="5" width="19" height="12" rx="3" fill="#f5a524"/>
+        <rect x="2.5" y="5" width="19" height="6.5" rx="3" fill="#ffc766"/>
+        <circle cx="7.5" cy="18.5" r="2" fill="#0a1830" stroke="#eaf1ff" stroke-width="1"/>
+        <circle cx="17.5" cy="18.5" r="2" fill="#0a1830" stroke="#eaf1ff" stroke-width="1"/>
+        <rect x="5" y="7.5" width="4.2" height="3.6" rx="0.6" fill="#0a1830"/>
+        <rect x="10.4" y="7.5" width="4.2" height="3.6" rx="0.6" fill="#0a1830"/>
+      </svg>
+      Smart Transport
+    </a>
 
-<form method="post">
+    <svg class="route-map" viewBox="0 0 420 260" fill="none" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path d="M-10 210 C 60 210, 70 130, 140 130 S 220 40, 300 40 S 400 90, 440 70"
+            stroke="#3a5da8" stroke-width="2.5" stroke-dasharray="1 10" stroke-linecap="round"/>
+      <circle cx="140" cy="130" r="5" fill="#f5a524"/>
+      <circle cx="300" cy="40" r="5" fill="#f5a524"/>
+      <circle cx="-10" cy="210" r="4" fill="#5b7bc4"/>
+      <circle cx="440" cy="70" r="4" fill="#5b7bc4"/>
+    </svg>
 
-{% csrf_token %}
+    <div class="brand-copy">
+      <p class="brand-eyebrow">Operations access</p>
+      <h1>Every route, vehicle&nbsp;and rider — in one place.</h1>
+      <p>Sign in to manage trips, fleets and bookings across the network.</p>
 
-<div class="mb-3">
+      <ul class="brand-features">
+        <li><span class="dot"></span> Live fleet tracking</li>
+        <li><span class="dot"></span> Route &amp; trip management</li>
+        <li><span class="dot"></span> Passenger bookings</li>
+      </ul>
+    </div>
+  </aside>
 
-<label>Username</label>
+  <section class="form-pane">
+    <div class="form-head">
+      <p class="eyebrow">Secure sign in</p>
+      <h2>Welcome back</h2>
+      <p>Enter your credentials to continue.</p>
+    </div>
 
-<input
-type="text"
-name="username"
-class="form-control">
+    {% if error %}
+    <div class="alert-error" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M12 7.5V13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="12" cy="16.3" r="1" fill="currentColor"/>
+      </svg>
+      <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'accounts:login' %}">
+      {% csrf_token %}
+
+      <div class="field{% if error %} has-error{% endif %}">
+        <label for="username">Username</label>
+        <div class="input-wrap">
+          <svg class="leading" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="8" r="3.6" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M4.5 20c1.4-3.8 4.6-5.8 7.5-5.8s6.1 2 7.5 5.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <input id="username" name="username" type="text" placeholder="e.g. j.mugobe"
+                 value="{{ username|default:'' }}" autocomplete="username" required autofocus>
+        </div>
+      </div>
+
+      <div class="field{% if error %} has-error{% endif %}">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <svg class="leading" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="5" y="10.5" width="14" height="9.5" rx="2" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7" stroke="currentColor" stroke-width="1.6"/>
+          </svg>
+          <input id="password" name="password" type="password" placeholder="••••••••"
+                 autocomplete="current-password" required>
+          <button type="button" class="toggle-visibility" id="togglePw" aria-label="Show password">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.6"/>
+              <circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="row-between">
+        <label class="remember">
+          <input type="checkbox" name="remember"> Keep me signed in
+        </label>
+        <span class="hint">Lost access?<br>Contact your administrator.</span>
+      </div>
+
+      <button type="submit" class="btn-submit">
+        Sign in
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </form>
+
+    <div class="divider">or</div>
+    <p class="signup-cta">New to the network? <a href="{% url 'accounts:register' %}">Create a passenger account</a></p>
+
+    <a class="back-home" href="/">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M11 5 4 12l7 7M4 12h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back to homepage
+    </a>
+  </section>
 
 </div>
 
-<div class="mb-3">
-
-<label>Password</label>
-
-<input
-type="password"
-name="password"
-class="form-control">
-
-</div>
-
-<button class="btn btn-primary">
-Login
-</button>
-
-</form>
-
-</div>
+<script>
+  var pwInput = document.getElementById('password');
+  var pwToggle = document.getElementById('togglePw');
+  pwToggle.addEventListener('click', function () {
+    var isPw = pwInput.getAttribute('type') === 'password';
+    pwInput.setAttribute('type', isPw ? 'text' : 'password');
+    pwToggle.setAttribute('aria-label', isPw ? 'Hide password' : 'Show password');
+  });
+</script>
 
 </body>
-
 </html>

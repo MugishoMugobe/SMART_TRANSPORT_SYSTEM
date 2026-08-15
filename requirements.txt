@@ -1,10 +1,14 @@
-certifi==2026.5.20
-distlib==0.4.3
-filelock==3.29.3
-packaging==26.2
-pillow==12.3.0
-pipenv==2026.6.2
-platformdirs==4.10.0
-python-discovery==1.4.2
-setuptools==82.0.1
-virtualenv==21.4.3
+# Core
+Django==6.0.6
+djangorestframework==3.18.0
+
+# Domain features already used by the app (drivers/vehicles photos,
+# booking QR tickets)
+pillow==12.2.0
+qrcode==8.2
+
+# Production
+gunicorn==26.0.0            # WSGI server
+whitenoise==6.12.0          # serves static files without a separate host
+dj-database-url==3.1.2      # parses Render/Railway's DATABASE_URL
+psycopg[binary]==3.3.4      # PostgreSQL driver for production

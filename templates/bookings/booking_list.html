@@ -17,9 +17,9 @@
 
 <form method="GET" class="mb-3">
 
-    <div class="row">
+    <div class="row g-2">
 
-        <div class="col-md-8">
+        <div class="col-md-6">
 
             <input
                 type="text"
@@ -28,6 +28,17 @@
                 placeholder="Search booking..."
                 value="{{ query|default:'' }}"
             >
+
+        </div>
+
+        <div class="col-md-2">
+
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="">All statuses</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
 
         </div>
 
@@ -181,6 +192,8 @@ Ticket
 
 </a>
 
+{% if user.is_superuser or user.profile.role == "STAFF" or user.profile.role == "ADMIN" %}
+
 <a href="{% url 'bookings:update' booking.id %}"
 class="btn btn-warning btn-sm">
 
@@ -194,6 +207,16 @@ class="btn btn-danger btn-sm">
 Delete
 
 </a>
+
+{% elif booking.status == "CONFIRMED" %}
+
+<form method="post" action="{% url 'bookings:cancel' booking.id %}" class="d-inline"
+      onsubmit="return confirm('Cancel this booking and release the seat?');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+</form>
+
+{% endif %}
 
 </td>
 
@@ -231,7 +254,7 @@ No bookings found.
 
 <a class="page-link"
 
-href="?page={{ bookings.previous_page_number }}&q={{ query }}">
+href="?page={{ bookings.previous_page_number }}&q={{ query|default:'' }}&status={{ status|default:'' }}">
 
 Previous
 
@@ -261,7 +284,7 @@ Previous
 
 <a class="page-link"
 
-href="?page={{ page }}&q={{ query }}">
+href="?page={{ page }}&q={{ query|default:'' }}&status={{ status|default:'' }}">
 
 {{ page }}
 
@@ -279,7 +302,7 @@ href="?page={{ page }}&q={{ query }}">
 
 <a class="page-link"
 
-href="?page={{ bookings.next_page_number }}&q={{ query }}">
+href="?page={{ bookings.next_page_number }}&q={{ query|default:'' }}&status={{ status|default:'' }}">
 
 Next
 

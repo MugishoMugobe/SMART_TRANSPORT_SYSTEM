@@ -6,6 +6,7 @@ from django.db.models import Q
 
 from .models import Trip
 from .forms import TripForm
+from accounts.decorators import role_required
 
 
 @login_required
@@ -28,6 +29,11 @@ def trip_list(request):
             Q(route__destination__icontains=query)
         )
 
+    status = request.GET.get("status")
+
+    if status:
+        trips = trips.filter(status=status)
+
     paginator = Paginator(trips, 10)
 
     page = request.GET.get("page")
@@ -39,12 +45,14 @@ def trip_list(request):
         "trips/trip_list.html",
         {
             "trips": trips,
-            "query": query
+            "query": query,
+            "status": status,
+            "status_choices": Trip.STATUS_CHOICES,
         }
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def trip_create(request):
 
     if request.method == "POST":
@@ -79,7 +87,7 @@ def trip_create(request):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def trip_update(request, pk):
 
     trip = get_object_or_404(
@@ -118,7 +126,7 @@ def trip_update(request, pk):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def trip_delete(request, pk):
 
     trip = get_object_or_404(

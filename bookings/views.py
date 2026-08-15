@@ -1,68 +1,25 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q, Max
+from django.db.models import Q
 
 from .models import Booking
 from trips.models import Trip
 from .forms import BookingForm
+from . import services
+from accounts.decorators import is_staff_or_admin, role_required
 
 
-
-# -------------------------------------------------
-# Generate Booking Reference
-# Example: BK00001
-# -------------------------------------------------
-
-def generate_booking_reference():
-
-    last_booking = Booking.objects.order_by("-id").first()
-
-    if last_booking:
-
-        try:
-            last_number = int(
-                last_booking.booking_reference.replace("BK", "")
-            )
-
-        except Exception:
-
-            last_number = last_booking.id
-
-
-        new_number = last_number + 1
-
-    else:
-
-        new_number = 1
-
-
-    return f"BK{new_number:05d}"
-
-
-
-# -------------------------------------------------
-# Get Next Seat Number (backup function)
-# -------------------------------------------------
-
-def next_seat_number(trip):
-
-    last = Booking.objects.filter(
-        trip=trip
-    ).aggregate(
-        Max("seat_number")
-    )
-
-
-    if last["seat_number__max"]:
-
-        return last["seat_number__max"] + 1
-
-
-    return 1
-
+def _can_manage_booking(user, booking):
+    """STAFF/ADMIN manage every booking; a PASSENGER account may only
+    touch a booking whose passenger record shares their account email —
+    the same rule the REST API enforces in api/permissions.py."""
+    if is_staff_or_admin(user):
+        return True
+    return bool(user.email) and booking.passenger.email.lower() == user.email.lower()
 
 
 # -------------------------------------------------
@@ -74,54 +31,43 @@ def booking_list(request):
 
     query = request.GET.get("q")
 
-
     bookings = Booking.objects.select_related(
         "passenger",
         "trip"
     ).all()
 
+    # Passengers only ever see their own bookings; staff/admin see all.
+    if not is_staff_or_admin(request.user):
+        bookings = bookings.filter(passenger__email__iexact=request.user.email or "")
 
     if query:
-
         bookings = bookings.filter(
-
             Q(booking_reference__icontains=query)
-            |
-            Q(passenger__full_name__icontains=query)
-            |
-            Q(trip__trip_number__icontains=query)
-
+            | Q(passenger__full_name__icontains=query)
+            | Q(trip__trip_number__icontains=query)
         )
 
+    status = request.GET.get("status")
 
-    paginator = Paginator(
-        bookings,
-        10
-    )
+    if status:
+        bookings = bookings.filter(status=status)
 
+    paginator = Paginator(bookings, 10)
 
     page = request.GET.get("page")
 
-
     bookings = paginator.get_page(page)
 
-
     return render(
-
         request,
-
         "bookings/booking_list.html",
-
         {
-
             "bookings": bookings,
-
-            "query": query
-
+            "query": query,
+            "status": status,
+            "status_choices": Booking.STATUS_CHOICES,
         }
-
     )
-
 
 
 # -------------------------------------------------
@@ -131,377 +77,141 @@ def booking_list(request):
 @login_required
 def booking_create(request):
 
-
     if request.method == "POST":
-
 
         form = BookingForm(request.POST)
 
-
         if form.is_valid():
 
+            trip = form.cleaned_data["trip"]
+            passenger = form.cleaned_data["passenger"]
 
-            booking = form.save(
-                commit=False
-            )
+            selected_seat = request.POST.get("seat_number")
+            seat_number = int(selected_seat) if selected_seat else None
 
-
-            trip = booking.trip
-
-
-
-            # Prevent overbooking
-
-            if trip.available_seats <= 0:
-
-
-                messages.error(
-
-                    request,
-
-                    "No seats are available for this trip."
-
+            try:
+                booking = services.create_booking(
+                    passenger=passenger,
+                    trip=trip,
+                    seat_number=seat_number,
                 )
 
+            except ValidationError as exc:
+                messages.error(request, exc.message)
+                return redirect("bookings:create")
 
-                return redirect(
-                    "bookings:create"
-                )
+            messages.success(request, "Booking created successfully.")
 
-
-
-            # Get selected seat
-
-            selected_seat = request.POST.get(
-                "seat_number"
-            )
-
-
-            if not selected_seat:
-
-
-                messages.error(
-
-                    request,
-
-                    "Please select a seat before booking."
-
-                )
-
-
-                return redirect(
-                    "bookings:create"
-                )
-
-
-
-            booking.seat_number = int(
-                selected_seat
-            )
-
-
-
-            # Prevent duplicate seat booking
-
-            seat_exists = Booking.objects.filter(
-
-                trip=trip,
-
-                seat_number=booking.seat_number
-
-            ).exists()
-
-
-
-            if seat_exists:
-
-
-                messages.error(
-
-                    request,
-
-                    "This seat is already booked. Please select another seat."
-
-                )
-
-
-                return redirect(
-                    "bookings:create"
-                )
-
-
-
-            # Generate booking reference
-
-            booking.booking_reference = generate_booking_reference()
-
-
-
-            # Calculate fare
-
-            booking.amount = trip.route.fare
-
-
-
-            booking.save()
-
-
-
-            # Reduce available seats
-
-            trip.available_seats -= 1
-
-            trip.save()
-
-
-
-            messages.success(
-
-                request,
-
-                "Booking created successfully."
-
-            )
-
-
-
-            return redirect(
-
-                "bookings:ticket",
-
-                pk=booking.pk
-
-            )
-
-
+            return redirect("bookings:ticket", pk=booking.pk)
 
     else:
-
-
         form = BookingForm()
 
-
-
     return render(
-
         request,
-
         "bookings/booking_form.html",
-
-        {
-
-            "form": form
-
-        }
-
+        {"form": form}
     )
-
 
 
 # -------------------------------------------------
 # Update Booking
 # -------------------------------------------------
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def booking_update(request, pk):
 
-
-    booking = get_object_or_404(
-
-        Booking,
-
-        pk=pk
-
-    )
-
+    booking = get_object_or_404(Booking, pk=pk)
 
     old_trip = booking.trip
 
-
-
     if request.method == "POST":
 
-
-        form = BookingForm(
-
-            request.POST,
-
-            instance=booking
-
-        )
-
+        form = BookingForm(request.POST, instance=booking)
 
         if form.is_valid():
 
-
-            booking = form.save(
-                commit=False
-            )
-
+            booking = form.save(commit=False)
 
             new_trip = booking.trip
 
-
-
             if old_trip != new_trip:
 
-
                 old_trip.available_seats += 1
-
-                old_trip.save()
-
-
+                old_trip.save(update_fields=["available_seats"])
 
                 if new_trip.available_seats <= 0:
+                    messages.error(request, "Selected trip is full.")
+                    return redirect("bookings:update", pk=pk)
 
-
-                    messages.error(
-
-                        request,
-
-                        "Selected trip is full."
-
-                    )
-
-
-                    return redirect(
-
-                        "bookings:update",
-
-                        pk=pk
-
-                    )
-
-
-
-                booking.seat_number = next_seat_number(
-                    new_trip
-                )
-
-
+                booking.seat_number = services.next_seat_number(new_trip)
                 booking.amount = new_trip.route.fare
 
-
-
                 new_trip.available_seats -= 1
-
-                new_trip.save()
-
-
+                new_trip.save(update_fields=["available_seats"])
 
             booking.save()
 
+            messages.success(request, "Booking updated successfully.")
 
-
-            messages.success(
-
-                request,
-
-                "Booking updated successfully."
-
-            )
-
-
-            return redirect(
-
-                "bookings:list"
-
-            )
-
-
+            return redirect("bookings:list")
 
     else:
-
-
-        form = BookingForm(
-            instance=booking
-        )
-
-
+        form = BookingForm(instance=booking)
 
     return render(
-
         request,
-
         "bookings/booking_form.html",
-
-        {
-
-            "form": form
-
-        }
-
+        {"form": form}
     )
-
 
 
 # -------------------------------------------------
 # Delete Booking
 # -------------------------------------------------
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def booking_delete(request, pk):
 
-
-    booking = get_object_or_404(
-
-        Booking,
-
-        pk=pk
-
-    )
-
-
+    booking = get_object_or_404(Booking, pk=pk)
 
     if request.method == "POST":
 
+        services.delete_booking(booking)
 
-        trip = booking.trip
+        messages.success(request, "Booking deleted successfully.")
 
-
-
-        trip.available_seats += 1
-
-        trip.save()
-
-
-
-        booking.delete()
-
-
-
-        messages.success(
-
-            request,
-
-            "Booking deleted successfully."
-
-        )
-
-
-
-        return redirect(
-
-            "bookings:list"
-
-        )
-
-
+        return redirect("bookings:list")
 
     return render(
-
         request,
-
         "bookings/booking_confirm_delete.html",
-
-        {
-
-            "booking": booking
-
-        }
-
+        {"booking": booking}
     )
 
+
+# -------------------------------------------------
+# Cancel Booking (soft — keeps the record, frees the seat)
+# -------------------------------------------------
+
+@login_required
+def booking_cancel(request, pk):
+
+    booking = get_object_or_404(Booking, pk=pk)
+
+    if not _can_manage_booking(request.user, booking):
+        messages.error(request, "You can only cancel your own bookings.")
+        return redirect("bookings:list")
+
+    if request.method == "POST":
+
+        services.cancel_booking(booking)
+
+        messages.success(request, "Booking cancelled and seat released.")
+
+        return redirect("bookings:list")
+
+    return redirect("bookings:list")
 
 
 # -------------------------------------------------
@@ -511,29 +221,18 @@ def booking_delete(request, pk):
 @login_required
 def booking_ticket(request, pk):
 
+    booking = get_object_or_404(Booking, pk=pk)
 
-    booking = get_object_or_404(
-
-        Booking,
-
-        pk=pk
-
-    )
-
+    if not _can_manage_booking(request.user, booking):
+        messages.error(request, "You can only view your own tickets.")
+        return redirect("bookings:list")
 
     return render(
-
         request,
-
         "bookings/booking_ticket.html",
-
-        {
-
-            "booking": booking
-
-        }
-
+        {"booking": booking}
     )
+
 
 # ---------------------------------------------
 # Get Seats For Selected Trip
@@ -542,44 +241,15 @@ def booking_ticket(request, pk):
 @login_required
 def available_seats(request, trip_id):
 
-    trip = get_object_or_404(
-        Trip,
-        id=trip_id
-    )
-
-
-    # Vehicle capacity
+    trip = get_object_or_404(Trip, id=trip_id)
 
     total_seats = trip.vehicle.seating_capacity
 
-
-    # Seats already booked
-
     booked_seats = list(
-
-        Booking.objects.filter(
-
-            trip=trip
-
-        ).values_list(
-
-            "seat_number",
-
-            flat=True
-
-        )
-
+        Booking.objects.filter(trip=trip).values_list("seat_number", flat=True)
     )
 
-
-    return JsonResponse(
-
-        {
-
-            "total_seats": total_seats,
-
-            "booked_seats": booked_seats
-
-        }
-
-    )
+    return JsonResponse({
+        "total_seats": total_seats,
+        "booked_seats": booked_seats,
+    })

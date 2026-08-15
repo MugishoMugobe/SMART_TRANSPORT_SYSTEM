@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from .models import Route
 from .forms import RouteForm
 from django.db.models import Q
+from accounts.decorators import role_required
 
 
 @login_required
@@ -18,9 +19,13 @@ def route_list(request):
     if query:
         routes = routes.filter(
             Q(origin__icontains=query) |
-            Q(destination__icontains=query) |
-            Q(status__icontains=query)
+            Q(destination__icontains=query)
     )
+
+    status = request.GET.get("status")
+
+    if status:
+        routes = routes.filter(status=status)
 
     paginator = Paginator(routes, 10)
 
@@ -34,11 +39,13 @@ def route_list(request):
         {
             "routes": routes,
             "query": query,
+            "status": status,
+            "status_choices": Route.STATUS_CHOICES,
         }
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def route_create(request):
 
     if request.method == "POST":
@@ -69,7 +76,7 @@ def route_create(request):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def route_update(request, pk):
 
     route = get_object_or_404(Route, pk=pk)
@@ -105,7 +112,7 @@ def route_update(request, pk):
     )
 
 
-@login_required
+@role_required("STAFF", "ADMIN")
 def route_delete(request, pk):
 
     route = get_object_or_404(Route, pk=pk)

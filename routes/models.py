@@ -38,5 +38,8 @@ class Route(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        ordering = ["origin", "destination"]
+
     def __str__(self):
         return f"{self.origin} → {self.destination}"

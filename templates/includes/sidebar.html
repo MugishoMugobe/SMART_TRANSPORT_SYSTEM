@@ -1,9 +1,12 @@
+{% with role=request.user.profile.role %}
 <div class="list-group">
 
     <a href="/dashboard/"
        class="list-group-item list-group-item-action">
         Dashboard
     </a>
+
+    {% if request.user.is_superuser or role == "STAFF" or role == "ADMIN" %}
 
     <a href="/passengers/"
        class="list-group-item list-group-item-action">
@@ -14,6 +17,8 @@
        class="list-group-item list-group-item-action">
         Drivers
     </a>
+
+    {% endif %}
 
     <a href="/vehicles/"
        class="list-group-item list-group-item-action">
@@ -35,9 +40,14 @@
         Bookings
     </a>
 
+    {% if request.user.is_superuser or role == "STAFF" or role == "ADMIN" %}
+
     <a href="/reports/"
        class="list-group-item list-group-item-action">
         Reports
     </a>
 
+    {% endif %}
+
 </div>
+{% endwith %}
