@@ -33,6 +33,9 @@ urlpatterns = [
     path("", RedirectView.as_view(url="/dashboard/")),
     path("reports/", include("reports.urls")),
 
+    path("api/v1/", include("api.urls")),
+    path("api-auth/", include("rest_framework.urls")),  # browsable API login/logout
+
 ]
 
 if settings.DEBUG:
