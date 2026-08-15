@@ -10,7 +10,7 @@ Built for MIT714 (Database Systems Management), IUEA — see
 for the test report, and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for
 how it's deployed.
 
-**Live app:** _add the deployed URL here once live — see docs/DEPLOYMENT.md_
+**Live app:** https://sts.mac-rdc.com
 
 ## Features
 
