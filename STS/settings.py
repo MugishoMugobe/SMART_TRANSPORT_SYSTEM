@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'rest_framework',
     'accounts',
     'passengers',
@@ -182,7 +183,18 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # The compressed/hashed manifest storage requires collectstatic to
+        # have already run (it looks up every {% static %} reference in a
+        # manifest file) — fine in production, where build.sh always runs
+        # it first, but it would break `runserver`/`manage.py test` on a
+        # fresh checkout with no manifest yet. Only switch to it when
+        # DEBUG is off; local dev keeps Django's plain static storage,
+        # which resolves straight from STATICFILES_DIRS with no build step.
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG else
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
     },
 }
 
