@@ -1,0 +1,9 @@
+# For Namecheap (or any cPanel/Phusion Passenger) shared hosting.
+#
+# No gunicorn — Passenger runs the WSGI app itself (see
+# passenger_wsgi.py). No psycopg — shared hosting bundles MySQL, not
+# Postgres, and PyMySQL is pure Python so it doesn't need a C compiler
+# the shared-hosting virtualenv likely doesn't have.
+-r requirements-base.txt
+
+PyMySQL==1.2.0

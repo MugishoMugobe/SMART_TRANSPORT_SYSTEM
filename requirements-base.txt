@@ -1,0 +1,21 @@
+# Dependencies every deployment needs, regardless of host or database.
+# Platform-specific extras live in requirements.txt (Render/Postgres)
+# and requirements-cpanel.txt (Namecheap/MySQL) — both start with
+# "-r requirements-base.txt" so there's one place each shared version
+# is pinned.
+
+Django==6.0.6
+djangorestframework==3.18.0
+
+# Domain features already used by the app (drivers/vehicles photos,
+# booking QR tickets)
+pillow==12.2.0
+qrcode==8.2
+
+# Serves static files straight out of the WSGI app — works the same
+# whether the process is run by gunicorn (Render) or Passenger (cPanel).
+whitenoise==6.12.0
+
+# Parses a single DATABASE_URL into Django's DATABASES setting, for
+# either Postgres (Render) or MySQL (cPanel) — see settings.py.
+dj-database-url==3.1.2
