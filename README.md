@@ -10,7 +10,7 @@ Built for MIT714 (Database Systems Management), IUEA — see
 for the test report, and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for
 how it's deployed.
 
-**Live app:** _add the Render URL here once deployed — see docs/DEPLOYMENT.md_
+**Live app:** _add the deployed URL here once live — see docs/DEPLOYMENT.md_
 
 ## Features
 
@@ -29,9 +29,10 @@ how it's deployed.
 ## Tech stack
 
 - **Backend:** Django 6, Django REST Framework
-- **Database:** SQLite locally, PostgreSQL in production (via `DATABASE_URL`)
+- **Database:** SQLite locally; MySQL in production on Namecheap/cPanel, Postgres if deployed to Render instead — both selected at runtime via `DATABASE_URL` (see `docs/DEPLOYMENT.md`)
 - **Frontend:** Django templates + Bootstrap 5
 - **Auth:** Django sessions (used by both the HTML views and the API)
+- **Hosting:** Namecheap cPanel shared hosting (Phusion Passenger) — `passenger_wsgi.py`, `requirements-cpanel.txt`
 
 ## Roles
 
@@ -53,7 +54,7 @@ apart.
 
 ```bash
 # from the STS/ directory
-pip install -r requirements.txt
+pip install -r requirements-base.txt
 
 python manage.py migrate
 python manage.py createsuperuser   # first ADMIN account
@@ -62,6 +63,11 @@ python manage.py runserver
 
 Visit `http://127.0.0.1:8000/`. No environment variables are required for
 local development — see `.env.example` for what production adds.
+
+For deployment, use `requirements-cpanel.txt` (Namecheap/MySQL, the
+platform this project actually deploys to) or `requirements.txt`
+(Render/Postgres, also supported) instead of `requirements-base.txt` —
+see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Running the tests
 

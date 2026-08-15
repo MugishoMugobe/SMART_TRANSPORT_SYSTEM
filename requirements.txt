@@ -1,14 +1,7 @@
-# Core
-Django==6.0.6
-djangorestframework==3.18.0
+# For Render (or any host that runs its own WSGI server + Postgres).
+# For Namecheap cPanel hosting, use requirements-cpanel.txt instead —
+# see docs/DEPLOYMENT.md.
+-r requirements-base.txt
 
-# Domain features already used by the app (drivers/vehicles photos,
-# booking QR tickets)
-pillow==12.2.0
-qrcode==8.2
-
-# Production
-gunicorn==26.0.0            # WSGI server
-whitenoise==6.12.0          # serves static files without a separate host
-dj-database-url==3.1.2      # parses Render/Railway's DATABASE_URL
-psycopg[binary]==3.3.4      # PostgreSQL driver for production
+gunicorn==26.0.0             # WSGI server
+psycopg[binary]==3.3.4       # PostgreSQL driver
