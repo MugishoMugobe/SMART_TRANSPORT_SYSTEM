@@ -73,8 +73,8 @@ pip install -r requirements-cpanel.txt
 
 ### d) Set environment variables
 
-Still on the **Setup Python App** page, under this app's
-**Environment variables**, add:
+Try the **Setup Python App** page's built-in **Environment variables**
+section first, and add:
 
 ```
 DJANGO_SECRET_KEY=<generate a long random value>
@@ -86,9 +86,58 @@ DATABASE_URL=mysql://cpaneluser_dbuser:PASSWORD@localhost/cpaneluser_sts
 
 (A quick way to generate a secret key: `python -c "import secrets; print(secrets.token_urlsafe(50))"`.)
 
+**Verify it actually persisted.** On at least one real deployment,
+values saved in that UI later showed as "no results found" — silently
+reverting the whole app to its insecure defaults (`DEBUG=True`,
+SQLite) with no visible error. After saving, reopen the page and
+confirm the variables are still listed. If they aren't, don't fight
+the UI — use the `.env` fallback instead:
+
+```bash
+cat > ~/APPROOT/.env << 'EOF'
+DJANGO_SECRET_KEY=your-actual-secret-key
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+DJANGO_CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+DATABASE_URL=mysql://cpaneluser_dbuser:PASSWORD@localhost/cpaneluser_sts
+EOF
+chmod 600 ~/APPROOT/.env
+```
+
+`passenger_wsgi.py` loads this file itself (see the code — it's a
+~15-line dependency-free parser) before Django's settings are read, so
+it works regardless of whether cPanel's own mechanism does. It's
+`.gitignore`d, so it only ever exists on the server, never in the
+repo. A real environment variable (from cPanel's UI, if that ever
+starts working) still takes precedence — `.env` only fills in what
+isn't already set.
+
 ### e) Migrate, collect static files, create the first admin
 
-Same Terminal session as §3c:
+**Terminal sessions do not automatically see either channel above** —
+not cPanel's env-var UI, and not the `.env` file (that's loaded by
+`passenger_wsgi.py`, which only runs inside the Passenger-managed web
+process, not when you run `python manage.py ...` by hand). Every time
+you open a new Terminal session to run management commands, export
+the same values into that shell first:
+
+```bash
+cat > ~/APPROOT/set_env.sh << 'EOF'
+export DJANGO_SECRET_KEY="your-actual-secret-key"
+export DJANGO_DEBUG=False
+export DJANGO_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+export DJANGO_CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+export DATABASE_URL="mysql://cpaneluser_dbuser:PASSWORD@localhost/cpaneluser_sts"
+EOF
+chmod 600 ~/APPROOT/set_env.sh
+
+source ~/APPROOT/set_env.sh
+python manage.py shell -c "from django.conf import settings; print(settings.DATABASES['default']['ENGINE'])"
+# must print django.db.backends.mysql — if it prints sqlite3, the
+# export above didn't take, or you're not in the same terminal session
+```
+
+Once that confirms MySQL, run the real sequence against it:
 
 ```bash
 python manage.py migrate
@@ -96,9 +145,15 @@ python manage.py collectstatic --noinput
 python manage.py createsuperuser   # first ADMIN account
 ```
 
+Skipping the `source`/verify step is exactly how this goes wrong: the
+commands "succeed" silently against a throwaway local SQLite file
+instead of the real database, and you end up debugging why an account
+that clearly exists still can't log in on the live site.
+
 ### f) Restart
 
-**Setup Python App** → this application → **Restart**. Visit your
+**Setup Python App** → this application → **Restart** — required
+after *any* change here: env vars, `.env`, or a code pull. Visit your
 domain — that's the "Live application URL" deliverable.
 
 ### g) Redeploying after a change
