@@ -1,41 +1,52 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
+<header class="app-topbar">
 
-        <a class="navbar-brand" href="/">
-            Smart Transport
-        </a>
+    <button type="button" class="sidebar-toggle" data-bs-toggle="offcanvas"
+            data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </button>
 
-        <button class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
+    <a class="app-brand" href="/">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="2.5" y="5" width="19" height="12" rx="3" fill="#f5a524"/>
+            <rect x="2.5" y="5" width="19" height="6.5" rx="3" fill="#ffc766"/>
+            <circle cx="7.5" cy="18.5" r="2" fill="#0a1830" stroke="#eaf1ff" stroke-width="1"/>
+            <circle cx="17.5" cy="18.5" r="2" fill="#0a1830" stroke="#eaf1ff" stroke-width="1"/>
+            <rect x="5" y="7.5" width="4.2" height="3.6" rx="0.6" fill="#0a1830"/>
+            <rect x="10.4" y="7.5" width="4.2" height="3.6" rx="0.6" fill="#0a1830"/>
+        </svg>
+        Smart Transport
+    </a>
 
-            <span class="navbar-toggler-icon"></span>
+    <div class="app-topbar-spacer"></div>
 
+    {% if user.is_authenticated %}
+    <div class="dropdown">
+        <button class="topbar-user" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="avatar">{{ user.username|slice:":1"|upper }}</span>
+            <span class="who">
+                <span class="name d-block">{{ user.get_full_name|default:user.username }}</span>
+                <span class="role d-block">{{ user.profile.role|default:"—"|lower }}</span>
+            </span>
         </button>
-
-        <div class="collapse navbar-collapse"
-             id="navbarNav">
-
-            <ul class="navbar-nav ms-auto">
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                       href="/dashboard/">
-                        Dashboard
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                       href="/accounts/logout/">
-                        Logout
-                    </a>
-                </li>
-
-            </ul>
-
-        </div>
-
+        <ul class="dropdown-menu dropdown-menu-end topbar-menu">
+            {% if user.is_superuser %}
+            <li>
+                <a class="dropdown-item" href="/admin/">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    Django admin
+                </a>
+            </li>
+            {% endif %}
+            <li>
+                <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Log out
+                </a>
+            </li>
+        </ul>
     </div>
-</nav>
+    {% endif %}
+
+</header>
