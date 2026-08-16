@@ -4,7 +4,7 @@ Companion to [`docs/ERD.md`](ERD.md) (the data model) — this covers the
 *behavioural* view: who can do what, and how a few of the more
 interesting use cases are actually built.
 
-![Use case diagram](use-case-diagram.svg)
+![Use case diagram](use-case-diagram.png)
 
 ## 1. Actors
 

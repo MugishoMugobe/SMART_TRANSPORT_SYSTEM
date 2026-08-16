@@ -37,6 +37,7 @@ account before following the steps below:
 ### a) Get the code onto the server
 
 Either:
+
 - **cPanel → Git™ Version Control** (if available) → clone
   `https://github.com/MugishoMugobe/SMART_TRANSPORT_SYSTEM.git`
   directly on the server, or
@@ -57,6 +58,7 @@ cPanel → **MySQL® Databases**:
 ### c) Create the Python App
 
 cPanel → **Setup Python App** → **Create Application**:
+
 - **Python version**: the newest offered (see §2).
 - **Application root**: the folder from §3a (e.g. `smart-transport`).
 - **Application URL**: your domain or subdomain.
