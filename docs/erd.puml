@@ -1,0 +1,143 @@
+@startuml Smart_Public_Transport_Management_System_ERD
+
+' Entity Relationship Diagram — Smart Public Transport Management System
+' Mirrors docs/ERD.md exactly: same entities, fields, and relationships,
+' just expressed as PlantUML source instead of Mermaid/prose. Render at
+' https://www.plantuml.com/plantuml/uml/ or with a local PlantUML jar
+' (requires Java + Graphviz).
+
+hide circle
+skinparam linetype ortho
+skinparam entity {
+    BackgroundColor #eaf2ff
+    BorderColor #0d6efd
+    FontColor #0f1b2d
+}
+skinparam class {
+    BackgroundColor #eaf2ff
+    BorderColor #0d6efd
+    HeaderBackgroundColor #173a6b
+    FontColor #0f1b2d
+}
+
+entity "USER" as user {
+  * id : int <<PK>>
+  --
+  username : string
+  email : string
+  password : string
+  is_superuser : bool
+}
+
+entity "PROFILE" as profile {
+  * id : int <<PK>>
+  --
+  user_id : int <<FK>>
+  role : string "ADMIN, STAFF, PASSENGER"
+  phone : string
+  address : string
+  profile_picture : image
+  created_at : datetime
+}
+
+entity "PASSENGER" as passenger {
+  * id : int <<PK>>
+  --
+  full_name : string
+  email : string <<UK>>
+  phone : string
+  address : string
+  national_id : string <<UK>>
+  created_at : datetime
+}
+
+entity "DRIVER" as driver {
+  * id : int <<PK>>
+  --
+  full_name : string
+  phone : string
+  license_number : string <<UK>>
+  years_of_experience : int
+  photo : image
+  created_at : datetime
+}
+
+entity "VEHICLE" as vehicle {
+  * id : int <<PK>>
+  --
+  vehicle_number : string <<UK>>
+  vehicle_type : string "Bus, Taxi, Minibus"
+  seating_capacity : int
+  model : string
+  manufacturer : string
+  year : int
+  image : image
+  created_at : datetime
+}
+
+entity "ROUTE" as route {
+  * id : int <<PK>>
+  --
+  origin : string
+  destination : string
+  distance : decimal
+  estimated_duration : duration
+  fare : decimal
+  status : string "Active, Inactive"
+  description : text
+  created_at : datetime
+}
+
+entity "TRIP" as trip {
+  * id : int <<PK>>
+  --
+  trip_number : string <<UK>>
+  vehicle_id : int <<FK>>
+  driver_id : int <<FK>>
+  route_id : int <<FK>>
+  departure_time : datetime
+  arrival_time : datetime
+  available_seats : int
+  status : string "Scheduled, In Progress, Completed, Cancelled"
+  notes : text
+  created_at : datetime
+}
+
+entity "BOOKING" as booking {
+  * id : int <<PK>>
+  --
+  booking_reference : string <<UK>>
+  passenger_id : int <<FK>>
+  trip_id : int <<FK>>
+  seat_number : int
+  amount : decimal
+  booking_date : datetime
+  payment_status : bool
+  status : string "Confirmed, Cancelled"
+  qr_code : image
+}
+
+entity "CAROUSEL" as carousel {
+  * id : int <<PK>>
+  --
+  title : string
+  description : text
+  image : image
+  created_at : datetime
+}
+
+' -------------------- Relationships --------------------
+user ||--|| profile : has
+vehicle ||--o{ trip : runs
+driver  ||--o{ trip : operates
+route   ||--o{ trip : "scheduled on"
+trip    ||--o{ booking : receives
+passenger ||--o{ booking : makes
+
+note right of carousel
+  Standalone — no foreign keys.
+  Homepage hero content, not part
+  of the operational domain graph.
+end note
+
+@enduml
