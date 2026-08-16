@@ -5,11 +5,7 @@ fleet, drivers, routes, scheduled trips, and passenger bookings with
 QR-coded tickets — plus a REST API and role-based access control over the
 same data.
 
-Built for MIT714 (Database Systems Management), IUEA — see
-[`docs/ERD.md`](docs/ERD.md) for the data model,
-[`docs/USE_CASES.md`](docs/USE_CASES.md) for the use case diagram,
-[`docs/TESTING.md`](docs/TESTING.md) for the test report, and
-[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for how it's deployed.
+Built for MIT714 (Database Systems Management), IUEA
 
 **Live app:** https://sts.mac-rdc.com
 
@@ -113,16 +109,3 @@ reports/      revenue/booking reports + CSV export (STAFF/ADMIN only)
 api/          DRF serializers/viewsets/permissions over the same models
 docs/         ERD, testing report, deployment report
 ```
-
-## Exam requirement → where it's satisfied
-
-| Requirement | Where |
-|---|---|
-| ERD + schema (Section A) | [`docs/ERD.md`](docs/ERD.md) |
-| Use case diagram | [`docs/USE_CASES.md`](docs/USE_CASES.md) |
-| CRUD per module (Section B) | each app's `views.py`/`urls.py`/`templates/<app>/` |
-| REST API (Section C) | `api/` app; shared rules in `bookings/services.py` |
-| Responsive UI, search/filter/validation (Section D) | Bootstrap 5 templates; `?q=`/`?status=`/`?vehicle_type=` on list views; form errors styled in `templates/base.html` |
-| Auth & RBAC (Section E) | `accounts/decorators.py` + `api/permissions.py`, applied per-view/per-endpoint |
-| Testing | [`docs/TESTING.md`](docs/TESTING.md) |
-| Deployment | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
