@@ -8,6 +8,10 @@ of the Django models already migrated into `db.sqlite3` (see each app's
 
 ## 1. Entity Relationship Diagram
 
+![Entity Relationship Diagram](erd-diagram.png)
+
+Same diagram, as Mermaid source (renders natively on GitHub too):
+
 ```mermaid
 erDiagram
     USER ||--|| PROFILE : "has"
